@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<libelles_navicrawler>
+<groupeslibelles>
+<groupelibelle nom="Independant"/>
+<groupelibelle nom="QUI PARLE"/>
+<groupelibelle nom="DOMAINE"/>
+<groupelibelle nom="portée"/>
+<groupelibelle nom="OBJET SUPPORT"/></groupeslibelles>
+<libelles>
+<libelle nom="cabinet" groupe="1"/>
+<libelle nom="academique" groupe="1"/>
+<libelle nom="revue" groupe="1"/>
+<libelle nom="association" groupe="1"/>
+<libelle nom="base de données" groupe="1"/>
+<libelle nom="personalité" groupe="1"/>
+<libelle nom="Institution" groupe="1"/>
+<libelle nom="toutes matières" groupe="2"/>
+<libelle nom="médias" groupe="2"/>
+<libelle nom="ntic" groupe="2"/>
+<libelle nom="propriété industrielle" groupe="2"/>
+<libelle nom="francais" groupe="3"/>
+<libelle nom="communautaire" groupe="3"/>
+<libelle nom="international" groupe="3"/>
+<libelle nom="tous supports" groupe="4"/>
+<libelle nom="musique" groupe="4"/>
+<libelle nom="édition" groupe="4"/>
+<libelle nom="presse" groupe="4"/>
+<libelle nom="audiovisuel" groupe="4"/>
+<libelle nom="web" groupe="4"/></libelles>
+</libelles_navicrawler>
