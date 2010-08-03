@@ -121,7 +121,7 @@ class WebCorpus():
 		self.websites=dict()
 		self.pages=dict()
 		self.date=time.strftime("%a %b %d %Y %H:%M:%S %Z", time.gmtime())
-
+		self.starting_points=[]
 	
 	def load_from_issuecrawler(self,filename) :		
 		# open issuecrawler
@@ -133,17 +133,13 @@ class WebCorpus():
 
 		self.date=time.strftime("%a %b %d %Y %H:%M:%S %Z",time.strptime(root.Statistics.CrawlEnd.get('datestamp'),"%Y-%m-%d %H:%M:%S"))
 
-		# load startinpoints
-		def autopagekey(key=0) :
-			while True :
-				yield "ep_"+str(key)
-				key=key+1
 
+		
+		# load starting points
 		for startingpoint in root.StartingPoints.StartingPoint :
 			host=re.sub("http://","",startingpoint.get("URL")) 
 			host=re.sub("www.","",host)
-			_print("adding "+host+" ("+startingpoint.get("URL")+")")
-			self.websites[host]=Website(host,startingpoint.get("URL"))
+			self.starting_points.append(host)
 
 		#load pages and websites
 		for site in root.PageList.Site :
@@ -154,7 +150,17 @@ class WebCorpus():
 			except AttributeError, e:
 				pass
 
+		# load external sites
+		for es in root.InwardLinks.ExternalSite :
+			self.websites[es.get('host')]=Website(es.get('host'))
+			
+		
 		# load links
+		def autopagekey(key=0) :
+			while True :
+				yield "ep_"+str(key)
+				key=key+1
+		
 		for es in root.InwardLinks.ExternalSite :
 			website=self.websites[es.get('host')]
 			for ep in es.ExternalPage :
@@ -176,6 +182,15 @@ class WebCorpus():
 			libelles_file=open(libelles_filename)
 			l_tree=objectify.parse(libelles_file)
 			libelles_root=l_tree.getroot()
+			
+			# check if groupe Independant is there
+			index_independant=[groupe.get("nom") for groupe in libelles_root.groupeslibelles.groupelibelle].index("Independant")
+				
+			# add starting point libelle 
+			starting_point_xml=etree.SubElement(libelles_root.libelles,"libelle")
+			starting_point_xml.set("nom","starting point")
+			starting_point_xml.set("groupe",str(index_independant))
+			
 			
 			#prepare classements element to be included
 			
@@ -207,7 +222,14 @@ class WebCorpus():
 					
 			site.set("url",website.url)
 			site.set("etat","voisin" if len(website.pages)==0 else "visite")
-			site.append(deepcopy(classements))
+			# classement : add the starting point flag
+			site_classements=deepcopy(classements)
+			classement= site_classements[[_c.get("libelle") for _c in site_classements].index("starting point")]
+			if website.host in self.starting_points :
+				classement.set("etat","oui")
+			else :
+				classement.set("etat","non")	
+			site.append(site_classements)
 			pages=etree.SubElement(site,"pages")
 			for page in website.pages.itervalues() : 
 				pagexml=etree.SubElement(pages,"page")
