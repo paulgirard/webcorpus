@@ -17,8 +17,13 @@ from lxml import etree
 from lxml import objectify
 import re,time
 from copy import deepcopy
+import sys
 
+verbose=False
 
+def _print(arg):
+	if verbose :
+		print arg
 
 class Link():
 
@@ -137,7 +142,7 @@ class WebCorpus():
 		for startingpoint in root.StartingPoints.StartingPoint :
 			host=re.sub("http://","",startingpoint.get("URL")) 
 			host=re.sub("www.","",host)
-			print "adding "+host+" ("+startingpoint.get("URL")+")"
+			_print("adding "+host+" ("+startingpoint.get("URL")+")")
 			self.websites[host]=Website(host,startingpoint.get("URL"))
 
 		#load pages and websites
@@ -176,14 +181,14 @@ class WebCorpus():
 			
 			for libelle in libelles_root.libelles.libelle :
 				classement= etree.SubElement(classements,"classement")
-				print libelle.get('nom')
+				_print(libelle.get('nom'))
 				classement.set("libelle",libelle.get('nom'))
 				classement.set("etat","non-classe")
 
 		else :
 			libelles_root=etree.Element("libelles")
 		
-		print etree.tostring(classements)
+		_print(etree.tostring(classements))
 		
 		wxsf=etree.Element("WebatlasXmlSessionFile")
 		session=etree.SubElement(wxsf,"session")
@@ -230,8 +235,22 @@ class WebCorpus():
 #   MAIN    #
 #############
 
-webcorpus=WebCorpus()
-webcorpus.load_from_issuecrawler('inm_319788.xml')
-print webcorpus
-webcorpus.export_to_navicrawler("sessionavicrawler.wxsf","libelles_navicrawler.xml")
+if len(sys.argv) < 7 :
+	print "usage : python webcorpus.py --from_issuecrawler issuecrawler_filename.xml --to_navicrawler output_filename.wxsf --use_tags tags_file.xml"
+	print " add -v for verbose mode"
+	exit()
+
+input_filename=sys.argv[sys.argv.index("--from_issuecrawler")+1]
+output_filename=sys.argv[sys.argv.index("--to_navicrawler")+1]
+tags_filename=sys.argv[sys.argv.index("--use_tags")+1]
+
+if "-v" in sys.argv :
+	verbose=True
+
+if "--from_issuecrawler" in sys.argv :
+	webcorpus=WebCorpus()
+	webcorpus.load_from_issuecrawler(input_filename)
+	_print(webcorpus)
+	webcorpus.export_to_navicrawler(output_filename,tags_filename)
+	print "file "+input_filename+" exported to "+output_filename+" successfully"
 
