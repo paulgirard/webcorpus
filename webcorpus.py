@@ -115,7 +115,7 @@ class WebCorpus():
 	def __init__(self):
 		self.websites=dict()
 		self.pages=dict()
-		self.date=time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
+		self.date=time.strftime("%a %b %d %Y %H:%M:%S %Z", time.gmtime())
 
 	
 	def load_from_issuecrawler(self,filename) :		
@@ -126,8 +126,7 @@ class WebCorpus():
 		tree= objectify.parse(xmlfile)
 		root=tree.getroot()
 
-		# load websites and pages included reverse index
-
+		self.date=time.strftime("%a %b %d %Y %H:%M:%S %Z",time.strptime(root.Statistics.CrawlEnd.get('datestamp'),"%Y-%m-%d %H:%M:%S"))
 
 		# load startinpoints
 		def autopagekey(key=0) :
@@ -234,5 +233,5 @@ class WebCorpus():
 webcorpus=WebCorpus()
 webcorpus.load_from_issuecrawler('inm_319788.xml')
 print webcorpus
-webcorpus.export_to_navicrawler("sessionavicrawler.wxsf","libelles_navicrawler")
+webcorpus.export_to_navicrawler("sessionavicrawler.wxsf","libelles_navicrawler.xml")
 
