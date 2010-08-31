@@ -151,9 +151,11 @@ class WebCorpus():
 				pass
 
 		# load external sites
-		for es in root.InwardLinks.ExternalSite :
-			self.websites[es.get('host')]=Website(es.get('host'))
-			
+		try :
+			for es in root.InwardLinks.ExternalSite :
+				self.websites[es.get('host')]=Website(es.get('host'))
+		except :
+			print "no external sites"	
 		
 		# load links
 		def autopagekey(key=0) :
@@ -161,14 +163,29 @@ class WebCorpus():
 				yield "ep_"+str(key)
 				key=key+1
 		
-		for es in root.InwardLinks.ExternalSite :
-			website=self.websites[es.get('host')]
-			for ep in es.ExternalPage :
-				#externalePage doesn't have any id
-				pageid=autopagekey()
-				self.pages[pageid]=website.addPage(pageid,ep.get("URL"))
-				for link in ep.Link :
-					self.pages[pageid].linkTo(self.pages[link.get('TargetPageID')])
+		# links page to page
+		for site in root.PageList.Site :
+			try : 
+				for page in	site.Page :
+					for link in  page.Link :
+						self.pages[page.get("ID")].linkTo(self.pages[link.get('TargetPageID')]) 
+			except AttributeError, e:
+				pass
+
+		
+		# external sites links
+		try :
+			for es in root.InwardLinks.ExternalSite :
+				website=self.websites[es.get('host')]
+				for ep in es.ExternalPage :
+					#externalePage doesn't have any id
+					pageid=autopagekey()
+					self.pages[pageid]=website.addPage(pageid,ep.get("URL"))
+					for link in ep.Link :
+						self.pages[pageid].linkTo(self.pages[link.get('TargetPageID')])
+		except :
+			print "no external sites"
+
 			
 	def __str__(self) :
 		#return "\n".join([str(link) for link in [links for links in 
