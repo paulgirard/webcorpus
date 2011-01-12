@@ -18,6 +18,7 @@ from lxml import objectify
 import re,time
 from copy import deepcopy
 import sys
+from urlparse import urlparse
 
 verbose=False
 
@@ -71,12 +72,10 @@ class Links(list):
 # website object
 class Website() :
 	
-	def __init__(self,host,url=""):
+	def __init__(self,host,url):
 		self.id=host
-		if url=="" :
-			self.url="http://"+("www."+host if len(host.split("."))<3 else host)
-		else :
-			self.url=url
+		
+		self.url=url
 		self.host=host
 		self.links=Links(self)
 		self.authority=0
@@ -135,6 +134,7 @@ class WebCorpus():
 
 
 		
+		
 		# load starting points
 		for startingpoint in root.StartingPoints.StartingPoint :
 			host=re.sub("http://","",startingpoint.get("URL")) 
@@ -143,7 +143,20 @@ class WebCorpus():
 
 		#load pages and websites
 		for site in root.PageList.Site :
-			self.websites[site.get('host')]=Website(site.get('host'),site.get('URL'))
+		
+			# handling empty url
+			if site.get('URL')=="" :
+				# retrieve URL from first page
+				if len(site.Page)>0 :
+					up=urlparse(site.Page[0].get('URL'))
+					url  = up.scheme+"://"+up.hostname
+				else :
+				# no page, get it from host 
+					url="http://"+("www."+site.get('host') if len(site.get('host').split("."))<3 else site.get('host'))
+			else :
+				url=site.get('URL')
+			
+			self.websites[site.get('host')]=Website(site.get('host'),url)
 			try : 
 				for page in	site.Page :
 					self.pages[page.get("ID")]=self.websites[site.get('host')].addPage(page.get("ID"),page.get("URL")) 
@@ -153,7 +166,18 @@ class WebCorpus():
 		# load external sites
 		try :
 			for es in root.InwardLinks.ExternalSite :
-				self.websites[es.get('host')]=Website(es.get('host'))
+				# handling empty url
+				if es.get('URL')=="" :
+					# retrieve URL from first page
+					if es.ExternalPage :
+						up=urlparse(es.ExternalPage[0].get('URL'))
+						url  = up.scheme+"://"+up.hostname
+					else :
+					# no page, get it from host 
+						url="http://"+("www."+es.get('host') if len(es.get('host').split("."))<3 else es.get('host'))
+				else :
+					url=site.get('URL')
+				self.websites[es.get('host')]=Website(es.get('host'),url)
 		except :
 			print "no external sites"	
 		
